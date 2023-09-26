@@ -7,6 +7,8 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 
 import java.util.Arrays;
@@ -22,13 +24,15 @@ public class TransferAction extends AnAction {
         if (project == null || editor == null) {
             return;
         }
-        var psiFile = (PsiJavaFile) PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+        var document = editor.getDocument();
+        var psiFile = (PsiJavaFile) PsiDocumentManager.getInstance(project).getPsiFile(document);
         if (psiFile == null) {
             return;
         }
-        int offset = editor.getCaretModel().getOffset();
+        var caretModel = editor.getCaretModel();
+        int offset = caretModel.getOffset();
         var elementAt = psiFile.findElementAt(offset);
-        var psiMethod = recursiveLatestMethod(elementAt);
+        var psiMethod = PsiTreeUtil.getParentOfType(elementAt, PsiMethod.class);
         if (psiMethod == null) {
             Messages.showMessageDialog("Please put the cursor into method body", "O2OX", Messages.getWarningIcon());
             return;
@@ -46,29 +50,15 @@ public class TransferAction extends AnAction {
             return;
         }
 
-        // 抓取目标全部方法
-        PsiCodeBlock body = psiMethod.getBody();
-        if (body != null) {
-            var factory = JavaPsiFacade.getInstance(project).getElementFactory();
-            var statementStr = codeGen(returnClass, sourceClass);
-            PsiStatement newStatement = factory.createStatementFromText(statementStr, psiMethod);
-            WriteCommandAction.runWriteCommandAction(project, () -> {
-                body.add(newStatement);
-            });
-
+        // 在当前光标写入代买
+        var statementStr = codeGen(returnClass, sourceClass);
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            document.insertString(offset, statementStr);
+            caretModel.moveToOffset(offset + statementStr.length());
             // 格式化代码
-            CodeStyleManager.getInstance(project).reformat(psiMethod);
-        }
-    }
-
-    private PsiMethod recursiveLatestMethod(PsiElement psiElement) {
-        if (psiElement instanceof PsiMethod) {
-            return (PsiMethod) psiElement;
-        }
-        if (psiElement == null) {
-            return null;
-        }
-        return recursiveLatestMethod(psiElement.getParent());
+            PsiDocumentManager.getInstance(project).commitDocument(document);
+            CodeStyleManager.getInstance(project).reformat(psiFile);
+        });
     }
 
     /**
@@ -77,14 +67,13 @@ public class TransferAction extends AnAction {
      * @param returnClass 目标类型
      */
     private boolean hasAccessorsAnno(PsiClass returnClass) {
-        var flag = false;
         for (var annotation : returnClass.getAnnotations()) {
             if (annotation.hasQualifiedName("lombok.experimental.Accessors")) {
-                flag = true;
-                break;
+                var chain = (PsiLiteralExpressionImpl) annotation.findAttributeValue("chain");
+                return chain != null && Boolean.TRUE.equals(chain.getValue());
             }
         }
-        return flag;
+        return false;
     }
 
     private String codeGen(PsiClass target, PsiClass source) {
