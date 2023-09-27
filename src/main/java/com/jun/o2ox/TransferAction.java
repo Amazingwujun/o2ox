@@ -10,8 +10,12 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
+import com.intellij.util.ObjectUtils;
+import io.netty.util.internal.ObjectUtil;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -66,18 +70,38 @@ public class TransferAction extends AnAction {
      *
      * @param returnClass 目标类型
      */
-    private boolean hasAccessorsAnno(PsiClass returnClass) {
+    private boolean hasChainInvoke(PsiClass returnClass) {
+        // 注解检查
         for (var annotation : returnClass.getAnnotations()) {
             if (annotation.hasQualifiedName("lombok.experimental.Accessors")) {
                 var chain = (PsiLiteralExpressionImpl) annotation.findAttributeValue("chain");
-                return chain != null && Boolean.TRUE.equals(chain.getValue());
+                if (chain != null && Boolean.TRUE.equals(chain.getValue())) {
+                    return true;
+                }
             }
         }
-        return false;
+
+        // 方法检查
+        // 只有当所有的 set 方法返回类型是目标对象类型时，才算链式调用
+        var setMethods = Arrays.stream(returnClass.getMethods())
+                .filter(t -> t.getName().startsWith("set"))
+                .toList();
+        if (setMethods.isEmpty()) {
+            return false;
+        }
+        var flag = true;
+        var classType = PsiTypesUtil.getClassType(returnClass);
+        for (var setMethod : setMethods) {
+            if (!Objects.equals(classType, setMethod.getReturnType())) {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
     }
 
     private String codeGen(PsiClass target, PsiClass source) {
-        if (hasAccessorsAnno(target)) {
+        if (hasChainInvoke(target)) {
             return codeGen1(target, source);
         } else {
             return codeGen2(target, source);
@@ -99,6 +123,11 @@ public class TransferAction extends AnAction {
                     sb.append("\n.").append(methodName)
                             .append("(")
                             .append(fieldName)
+                            .append(")");
+                } else {
+                    sb.append("\n.").append(methodName)
+                            .append("(")
+                            .append("null")
                             .append(")");
                 }
             }
@@ -125,6 +154,14 @@ public class TransferAction extends AnAction {
                             .append(methodName)
                             .append("(")
                             .append(fieldName)
+                            .append(");");
+                } else {
+                    sb
+                            .append("\n")
+                            .append("result.")
+                            .append(methodName)
+                            .append("(")
+                            .append("null")
                             .append(");");
                 }
             }
