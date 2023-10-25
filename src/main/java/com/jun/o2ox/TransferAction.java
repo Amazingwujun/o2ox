@@ -5,16 +5,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
-import com.intellij.util.ObjectUtils;
-import io.netty.util.internal.ObjectUtil;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,7 +42,8 @@ public class TransferAction extends AnAction {
             return;
         }
         var returnType = psiMethod.getReturnType();
-        if (returnType == null || returnType.equals(PsiType.VOID)) {
+        if (returnType == null || returnType.equalsToText("void")) {
+            Messages.showMessageDialog("The method return type can't be void", "O2OX", Messages.getWarningIcon());
             return;
         }
         var returnClass = PsiTypesUtil.getPsiClass(returnType);
