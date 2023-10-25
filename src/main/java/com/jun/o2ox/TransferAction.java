@@ -5,10 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -115,21 +112,37 @@ public class TransferAction extends AnAction {
         // source 字段获取
         var psiFieldMap = Arrays.stream(source.getFields())
                 .collect(Collectors.toMap(t -> t.getName().toLowerCase(), Function.identity()));
+        // 对象映射需要检查 primary type 与 Object 类型的装箱拆箱操作
+        var targetFieldNameAndTypeMap = Arrays.stream(target.getFields())
+                .collect(Collectors.toMap(t -> t.getName().toLowerCase(), PsiField::getType));
         for (var method : target.getMethods()) {
             var methodName = method.getName();
             if (methodName.startsWith("set")) {
-                var mn = methodName.substring(3).toLowerCase();
-                if (psiFieldMap.containsKey(mn)) {
-                    var fieldName = psiFieldMap.get(mn).getName();
+                var targetFieldName = methodName.substring(3).toLowerCase();
+                if (psiFieldMap.containsKey(targetFieldName)) {
+                    var fieldName = psiFieldMap.get(targetFieldName).getName();
                     sb.append("\n.").append(methodName)
                             .append("(")
                             .append(fieldName)
                             .append(")");
                 } else {
                     sb.append("\n.").append(methodName)
-                            .append("(")
-                            .append("null")
-                            .append(")");
+                            .append("(");
+
+                    var psiType = targetFieldNameAndTypeMap.get(targetFieldName);
+                    if (psiType == null) {
+                        // psiType 可能会是 null?
+                        sb.append("null?");
+                    } else {
+                        String canonicalText = psiType.getCanonicalText();
+                        switch (canonicalText) {
+                            case "byte", "char", "short", "int", "long", "float", "double" -> sb.append(0);
+                            case "boolean" -> sb.append(false);
+                            default -> sb.append("null");
+                        }
+                    }
+
+                    sb.append(")");
                 }
             }
         }
@@ -141,29 +154,46 @@ public class TransferAction extends AnAction {
         var sb = new StringBuilder();
         sb.append("var result =").append(" new ").append(target.getName()).append("();");
         // source 字段获取
-        var psiFieldMap = Arrays.stream(source.getFields())
+        var sourceFieldNameMap = Arrays.stream(source.getFields())
                 .collect(Collectors.toMap(t -> t.getName().toLowerCase(), Function.identity()));
+        // 对象映射需要检查 primary type 与 Object 类型的装箱拆箱操作
+        var targetFieldNameAndTypeMap = Arrays.stream(target.getFields())
+                .collect(Collectors.toMap(t -> t.getName().toLowerCase(), PsiField::getType));
+        // 遍历赋值
         for (var method : target.getMethods()) {
             var methodName = method.getName();
             if (methodName.startsWith("set")) {
-                var mn = methodName.substring(3).toLowerCase();
-                if (psiFieldMap.containsKey(mn)) {
-                    var fieldName = psiFieldMap.get(mn).getName();
+                var targetFieldName = methodName.substring(3).toLowerCase();
+                if (sourceFieldNameMap.containsKey(targetFieldName)) {
+                    var sourceFieldName = sourceFieldNameMap.get(targetFieldName).getName();
                     sb
                             .append("\n")
                             .append("result.")
                             .append(methodName)
                             .append("(")
-                            .append(fieldName)
+                            .append(sourceFieldName)
                             .append(");");
                 } else {
                     sb
                             .append("\n")
                             .append("result.")
                             .append(methodName)
-                            .append("(")
-                            .append("null")
-                            .append(");");
+                            .append("(");
+
+                    PsiType psiType = targetFieldNameAndTypeMap.get(targetFieldName);
+                    if (psiType == null) {
+                        // psiType 可能会是 null?
+                        sb.append("null?");
+                    } else {
+                        String canonicalText = psiType.getCanonicalText();
+                        switch (canonicalText) {
+                            case "byte", "char", "short", "int", "long", "float", "double" -> sb.append(0);
+                            case "boolean" -> sb.append(false);
+                            default -> sb.append("null");
+                        }
+                    }
+
+                    sb.append(");");
                 }
             }
         }

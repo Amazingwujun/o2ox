@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9cc41645-ddd9-4fe6-add5-3985dd5b1870" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/jun/o2ox/TransferAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/jun/o2ox/TransferAction.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/pluginIcon.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/pluginIcon.svg" afterDir="false" />
     </list>
@@ -86,7 +83,7 @@
       <recent name="C:\Users\admin\IdeaProjects\o2ox\src\main\resources\META-INF" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.o2ox [buildPlugin]">
+  <component name="RunManager" selected="Gradle.Run Plugin">
     <configuration name="TransferAction" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.jun.o2ox.TransferAction" />
       <module name="o2ox.main" />
@@ -186,7 +183,7 @@
       <workItem from="1695696727297" duration="22527000" />
       <workItem from="1695775714546" duration="843000" />
       <workItem from="1695780501772" duration="153000" />
-      <workItem from="1698200976224" duration="4783000" />
+      <workItem from="1698200976224" duration="9112000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 基本完成插件的开发">
       <created>1695723137612</created>
@@ -202,12 +199,50 @@
       <option name="project" value="LOCAL" />
       <updated>1695776417044</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="perf: 移除 PsiType.VOID(Deprecated) 引用, 同时加入 default icon">
+      <option name="closed" value="true" />
+      <created>1698213051693</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1698213051693</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="62d83be2-0a01-4fe6-8108-e39a829aa882" value="TOOL_WINDOW" />
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
+        <entry key="62d83be2-0a01-4fe6-8108-e39a829aa882">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="structure">
+                    <value>
+                      <list>
+                        <option value="dir:C:/Users/admin/IdeaProjects/o2ox/src/main/resources/META-INF" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+            </State>
+          </value>
+        </entry>
         <entry key="MAIN">
           <value>
             <State />
@@ -219,6 +254,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: 基本完成插件的开发" />
     <MESSAGE value="perf: 优化链式调用检查逻辑" />
-    <option name="LAST_COMMIT_MESSAGE" value="perf: 优化链式调用检查逻辑" />
+    <MESSAGE value="perf: 移除 PsiType.VOID(Deprecated)" />
+    <MESSAGE value="perf: 移除 PsiType.VOID(Deprecated) 引用, 同时加入 default icon" />
+    <option name="LAST_COMMIT_MESSAGE" value="perf: 移除 PsiType.VOID(Deprecated) 引用, 同时加入 default icon" />
   </component>
 </project>
